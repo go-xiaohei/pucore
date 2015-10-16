@@ -44,6 +44,7 @@ func (mod *Modular) Register(ms ...IModule) {
 		if err = m.Bootstrap(mod.injector); err != nil {
 			panic(err)
 		}
+		mod.modules[m.Name()] = m
 	}
 }
 
