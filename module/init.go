@@ -2,17 +2,17 @@ package module
 
 import (
 	"github.com/go-xiaohei/pucore/app"
-	"github.com/go-xiaohei/pucore/module/common"
+	"github.com/go-xiaohei/pucore/module/base"
+	"github.com/go-xiaohei/pucore/module/boot"
 )
 
 func init() {
-	// add Bootstrap modular as default,
-	// it bootstraps global vars with correct config data
-	app.Modular.Register(new(common.Bootstrap))
-	// app.Modular.Enable(new(common.Bootstrap).Name())
+	// register boot modules.
+	// boot modules init basic variables to other modules, such as database, web server.
+	// if install module finds install-process, call all boot.InstallModule to install.
+	app.Modular.Register(new(boot.Boot), new(boot.Install), new(boot.Upgrade))
 
-	// add Install modular,
-	// try to begin install process if first run,
-	// or skip it
-	app.Modular.Register(new(common.Install))
+	// register base modules.
+	// basic modules registers basic app variables to other modules, such as settings, theme, i18n
+	app.Modular.Register(new(base.Setting))
 }

@@ -3,78 +3,72 @@ package app
 import (
 	"github.com/Unknwon/com"
 	"gopkg.in/ini.v1"
-	"io"
 	"os"
 )
 
-var (
-	CONFIG_FILE = "config.ini"
-)
+const CONFIG_FILE = "config.ini"
 
 type Config struct {
 	Name    string
 	Version string
 	Date    string
 
-	HttpProtocol string
-	HttpHost     string
-	HttpPort     string
-	HttpDomain   string
+	Http ConfigHttp
+	Db   ConfigDb
 
-	DbDriver string
-	DbDSN    string
-
-	IsNewFile bool `ini:"-"`
+	IsNew bool `ini:"-"`
 }
 
-// new config data,
-// if config file exist, read file;
-// otherwise, create new file and mark IsNewFile flag
-func newConfig() *Config {
-	c := &Config{
+type ConfigHttp struct {
+	Host     string
+	Port     string
+	Protocol string
+}
+
+type ConfigDb struct {
+	Driver string
+	DSN    string
+}
+
+func NewConfig() *Config {
+	config := &Config{
 		Name:    "PUGO",
 		Version: "2.0",
-		Date:    "20151016",
-
-		HttpProtocol: "http",
-		HttpHost:     "0.0.0.0",
-		HttpPort:     "9999",
-		HttpDomain:   "localhost",
-
-		DbDriver: "tidb",
-		DbDSN:    "boltdb://data.db/tidb",
+		Date:    "20151018",
+		Http: ConfigHttp{
+			Host:     "0.0.0.0",
+			Port:     "9999",
+			Protocol: "http",
+		},
+		Db: ConfigDb{
+			Driver: "tidb",
+			DSN:    "boltdb://data.db/tidb",
+		},
 	}
-	// if config file is not exist,
-	// set as new file and write to new file
-	if !com.IsFile(CONFIG_FILE) {
-		c.IsNewFile = true
-		file, err := os.OpenFile(CONFIG_FILE, os.O_CREATE|os.O_RDWR, os.ModePerm)
-		if err != nil {
-			panic(err)
-		}
-		defer file.Close()
-		if err := c.WriteTo(file); err != nil {
-			panic(err)
-		}
-		return c
-	}
-	// read from file
-	file, err := ini.Load(CONFIG_FILE)
-	if err != nil {
-		panic(err)
-	}
-	if err := file.MapTo(c); err != nil {
-		panic(err)
-	}
-	return c
+	return config
 }
 
-// write config ini bytes to io.Writer
-func (c *Config) WriteTo(w io.Writer) error {
+// Sync saves config to file.
+// If config file is not exist, it creates new file and marks *Config is new file.
+func (c *Config) Sync() error {
+	// if config file exist, read it
+	if com.IsFile(CONFIG_FILE) {
+		file, err := ini.Load(CONFIG_FILE)
+		if err != nil {
+			return err
+		}
+		return file.MapTo(c)
+	}
+	// create file
+	c.IsNew = true
 	file := ini.Empty()
 	if err := file.ReflectFrom(c); err != nil {
-		panic(err)
+		return err
 	}
-	_, err := file.WriteToIndent(w, "  ")
+	f, err := os.OpenFile(CONFIG_FILE, os.O_CREATE|os.O_RDWR|os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteToIndent(f, "  ")
 	return err
 }
