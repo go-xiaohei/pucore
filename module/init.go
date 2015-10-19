@@ -2,9 +2,11 @@ package module
 
 import (
 	"github.com/go-xiaohei/pucore/app"
+	"github.com/go-xiaohei/pucore/module/asset"
 	"github.com/go-xiaohei/pucore/module/auth"
 	"github.com/go-xiaohei/pucore/module/boot"
 	"github.com/go-xiaohei/pucore/module/setting"
+	"github.com/go-xiaohei/pucore/module/theme"
 	"github.com/go-xiaohei/pucore/module/user"
 )
 
@@ -16,7 +18,7 @@ func init() {
 
 	// register base modules.
 	// basic modules registers basic app variables to other modules, such as settings, theme, i18n
-	app.Modular.Register(new(setting.Module))
+	app.Modular.Register(new(setting.Module), new(asset.Module), new(theme.Module))
 
 	// register logic modules
 	app.Modular.Register(new(user.Module), new(auth.Module))

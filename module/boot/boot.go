@@ -55,6 +55,11 @@ func (b *Boot) Prepare(ctx *pucore.ModuleContext) error {
 
 	// add close hook to modular
 	ctx.Modular.Hook(pucore.MODULAR_HOOK_ALL_AFTER, func(_ pucore.IModule) error {
+		/*var (
+			database = new(app.Db)
+			server   = new(app.Web)
+		)*/
+		ctx.Injector.Get(database, server) // we need read it again
 		if err := server.Close(); err != nil {
 			log15.Warn("Boot.Server.Close", "error", err)
 		}
