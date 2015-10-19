@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/go-xorm/xorm"
-	"gopkg.in/inconshreveable/log15.v2"
 )
 
 type Db struct {
@@ -28,6 +27,5 @@ func (db *Db) Connect() error {
 		return err
 	}
 	db.Engine = engine
-	log15.Debug("Db.Connect." + db.Driver)
 	return nil
 }

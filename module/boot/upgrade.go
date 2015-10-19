@@ -19,5 +19,5 @@ func (u *Upgrade) Enable(ctx *pucore.ModuleContext) error {
 }
 
 func (u *Upgrade) Disable(ctx *pucore.ModuleContext) error {
-	return nil
+	return pucore.ErrModuleDisableIgnore // todo : maybe upgrade-process can be disabled when online update
 }

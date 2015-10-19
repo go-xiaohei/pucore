@@ -1,12 +1,17 @@
 package pucore
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 const (
 	MODULAR_HOOK_ENABLE_BEFORE = iota + 1
 	MODULAR_HOOK_ENABLE_AFTER
 	MODULAR_HOOK_DISABLE_BEFORE
 	MODULAR_HOOK_DISABLE_AFTER
+	MODULAR_HOOK_ALL_BEFORE
+	MODULAR_HOOK_ALL_AFTER
 )
 
 var (
@@ -15,6 +20,10 @@ var (
 	}
 	ErrModuleNotFound = func(mod IModule) error {
 		return fmt.Errorf("Module '%s' is not found", mod.Id())
+	}
+	ErrModuleDisableIgnore = errors.New("Module can't disable")
+	ErrModuleDependsOn     = func(m1, m2 IModule) error {
+		return fmt.Errorf("Module '%s' depends on '%s'", m1.Id(), m2.Id())
 	}
 )
 
@@ -106,7 +115,8 @@ func (m *Modular) Disable(mod IModule) error {
 		Behavior: m.behavior,
 		Modular:  m,
 	}
-	if err = m.modules[mod.Id()].Disable(ctx); err != nil {
+	// some modules cant disable, it should run always, such as setting, i18n
+	if err = m.modules[mod.Id()].Disable(ctx); err != nil && err != ErrModuleDisableIgnore {
 		return nil
 	}
 	if err = m.emit(MODULAR_HOOK_DISABLE_AFTER, mod); err != nil {
@@ -117,6 +127,9 @@ func (m *Modular) Disable(mod IModule) error {
 
 func (m *Modular) EnableAll() error {
 	var err error
+	if err = m.emit(MODULAR_HOOK_ALL_BEFORE, nil); err != nil {
+		return err
+	}
 	for _, mod := range m.modules {
 		if err = m.Enable(mod); err != nil {
 			return err
@@ -131,6 +144,9 @@ func (m *Modular) DisableAll() error {
 		if err = m.Disable(mod); err != nil {
 			return err
 		}
+	}
+	if err = m.emit(MODULAR_HOOK_ALL_AFTER, nil); err != nil {
+		return err
 	}
 	return nil
 }

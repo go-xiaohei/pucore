@@ -29,10 +29,10 @@ func (ins *Install) Prepare(ctx *pucore.ModuleContext) error {
 			if err := installM.Install(ctx); err != nil {
 				return err
 			}
+			log15.Info("Boot.Install." + m.Id())
 		}
 		return nil
 	})
-	log15.Info("Boot.Install.Finish")
 	return nil
 
 }
@@ -42,7 +42,7 @@ func (ins *Install) Enable(ctx *pucore.ModuleContext) error {
 }
 
 func (ins *Install) Disable(ctx *pucore.ModuleContext) error {
-	return nil
+	return pucore.ErrModuleDisableIgnore
 }
 
 // InstallModule defines modules support install-process.

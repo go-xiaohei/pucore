@@ -31,8 +31,9 @@ func init() {
 	var (
 		config   *Config = NewConfig()
 		database *Db     = NewDB(config.Db.Driver, config.Db.DSN)
+		server   *Web    = NewWeb(config.Http.Host, config.Http.Port, config.Http.Protocol)
 	)
-	Injector = pucore.NewInjector(config, database)
+	Injector = pucore.NewInjector(config, database, server)
 	Behavior = pucore.NewBehaviors()
 	Modular = pucore.NewModular(Injector, Behavior)
 }
